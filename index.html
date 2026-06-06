@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <title>Klinički Informacioni Sistem | Medicinski Workspace</title>
+    <style>
+        /* --- MEDICINSKI WORKSPACE STIL (LEVA STRANA) --- */
+        :root { 
+            --med-dark: #0f172a; 
+            --med-panel: #1e293b; 
+            --med-border: #334155; 
+            --med-accent: #0ea5e9; 
+            --med-text: #f8fafc; 
+            --med-muted: #94a3b8;
+            --med-success: #10b981;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--med-dark); color: var(--med-text); margin: 0; padding: 20px; display: flex; gap: 25px; }
+        
+        .workspace-panel { width: 45%; background: var(--med-panel); padding: 25px; border-radius: 12px; border: 1px solid var(--med-border); max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; }
+        
+        .nav-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 15px; }
+        .tab-btn { background: #334155; border: 1px solid var(--med-border); color: var(--med-muted); padding: 12px 5px; font-size: 11px; font-weight: bold; text-transform: uppercase; border-radius: 6px; cursor: pointer; text-align: center; transition: 0.2s; }
+        .tab-btn.active { background: var(--med-accent); color: white; border-color: var(--med-accent); }
+        .tab-btn:hover { background: #475569; }
+        
+        .section-content { display: none; }
+        .section-content.active { display: block; }
+        
+        .input-group { background: #334155; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--med-accent); }
+        .input-group h4 { margin: 0 0 12px 0; color: #fff; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        label { display: block; margin: 10px 0 4px; font-weight: 600; font-size: 13px; color: #cbd5e1; }
+        input, textarea, select { width: 100%; padding: 10px; background: #1e293b; border: 1px solid var(--med-border); color: white; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        textarea { height: 75px; resize: vertical; }
+        
+        .btn-holder { display: flex; gap: 10px; margin-top: auto; padding-top: 15px; }
+        button.action { flex: 1; padding: 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 13px; text-transform: uppercase; }
+        .btn-save { background: var(--med-success); color: white; }
+        .btn-print { background: #f59e0b; color: white; }
+        
+        .archive-list { background: #1e293b; border: 1px solid var(--med-border); padding: 12px; border-radius: 6px; max-height: 120px; overflow-y: auto; margin-top: 10px; }
+        .archive-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #334155; font-size: 13px; }
+        .archive-item span { cursor: pointer; }
+        .archive-item span:hover { color: var(--med-accent); }
+        .btn-del { background: #ef4444; color: white; border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+
+        /* --- PROFESIONALNI KLINIČKI IZVEŠTAJ (DESNA STRANA - SPREMNA ZA ŠTAMPU) --- */
+        .preview-paper { width: 55%; background: white; color: black; padding: 60px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); min-height: 297mm; box-sizing: border-box; }
+        
+        .clinic-header { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 30px; font-size: 13px; line-height: 1.4; }
+        .clinic-header .clinic-logo { font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .clinic-header .clinic-meta { text-align: right; }
+        
+        .patient-info-block { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; background: #f8fafc; padding: 15px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 30px; font-size: 13px; }
+        .patient-info-block div { line-height: 1.5; }
+        
+        .report-title { text-align: center; margin-bottom: 30px; }
+        .report-title h1 { margin: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #000; padding-bottom: 5px; display: inline-block; }
+        .report-title p { margin: 5px 0 0 0; font-size: 12px; color: #475569; font-weight: 600; }
+        
+        .clinical-section { margin-bottom: 25px; page-break-inside: avoid; }
+        .clinical-section h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: #000; margin: 0 0 8px 0; border-left: 3px solid #000; padding-left: 8px; }
+        .clinical-section p { font-size: 13.5px; line-height: 1.6; margin: 5px 0; text-align: justify; white-space: pre-line; }
+        
+        .status-metrics { display: flex; gap: 20px; background: #f1f5f9; padding: 10px; border-radius: 4px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+
+        .clinic-footer { margin-top: 60px; border-top: 1px solid #000; padding-top: 15px; font-size: 11px; text-align: justify; color: #334155; line-height: 1.4; }
+        .signatures-block { display: flex; justify-content: space-between; margin-top: 50px; page-break-inside: avoid; }
+        .sig-line { width: 220px; border-top: 1px solid #000; text-align: center; font-size: 12px; padding-top: 5px; font-weight: 600; }
+
+        @media print {
+            body { background: white; color: black; padding: 0; margin: 0; display: block; }
+            .workspace-panel { display: none; }
+            .preview-paper { width: 100%; box-shadow: none; padding: 0; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LEVA STRANA: MEDICINSKI WORKSPACE PANEL -->
+    <div class="workspace-panel">
+        <h2 style="margin-top:0; color: var(--med-accent);">🩺 Klinički Informacioni Sistem</h2>
+        
+        <!-- NAVIGACIONI tasteri ZA SEKCIJE -->
+        <div class="nav-tabs">
+            <div class="tab-btn active" id="btn-m1" onclick="switchTab('m1')">1. Pacijent</div>
+            <div class="tab-btn" id="btn-m2" onclick="switchTab('m2')">2. Pregled / Status</div>
+            <div class="tab-btn" id="btn-m3" onclick="switchTab('m3')">3. Zakazivanje</div>
+        </div>
+
+        <!-- FIKSNA KLINIKA POSTAVKA -->
+        <div class="input-group" style="border-left-color: #ef4444;">
+            <h4>Zdravstvena Ustanova (Fiksno)</h4>
+            <label>Naziv Klinike / Centra:</label>
+            <input type="text" id="cfgClinicName" value="UNIVERZITETSKI KLINIČKI CENTAR" oninput="updatePreview()">
+            <label>Odeljenje / Služba:</label>
+            <input type="text" id="cfgDepartment" value="Služba za kardiologiju i internu medicinu" oninput="updatePreview()">
+            <label>Lekar Specijalista (Ime i titula):</label>
+            <input type="text" id="cfgDoctor" value="Dr Ognjen Filipović, spec. interne medicine" oninput="updatePreview()">
+        </div>
+
+        <!-- SEKCIJA 1: PODACI O PACIJENTU I ANAMNEZA -->
+        <div id="tab-m1" class="section-content active">
+            <div class="input-group">
+                <h4>Osnovni podaci pacijenta</h4>
+                <div class="grid-2">
+                    <div>
+                        <label>Ime i prezime:</label>
+                        <input type="text" id="m1Name" value="Petar Petrović" oninput="updatePreview()">
+                    </div>
+                    <div>
+                        <label>Datum rođenja:</label>
+                        <input type="date" id="m1Dob" value="1984-06-15" oninput="updatePreview()">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label>LBO / JMBG:</label>
+                        <input type="text" id="m1Lbo" value="10293847561" oninput="updatePreview()">
+                    </div>
+                    <div>
+                        <label>Pol:</label>
+                        <select id="m1Gender" onchange="updatePreview()">
+                            <option selected>Muški</option>
+                            <option>Ženski</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <h4>Anamneza (Anamnesis)</h4>
+                <label>Glavne tegobe (Padajući meni):</label>
+                <select id="m1TegobeSel" onchange="applyPreset('m1TegobeSel', 'm1ChiefComplaints')">
+                    <option value="">-- Izaberi standardnu tegobu --</option>
+                    <option value="Pacijent se žali na jak, stežući bol iza grudne kosti koji se širi u levo rame i donju vilicu, praćen gušenjem i obilnim preznojavanjem.">Anginozni bol u grudima</option>
+                    <option value="Javlja se hronični zamor, dispneja pri minimalnom fizičkom naporu, praćena otocima (edemima) na potkolenicama.">Srčana insuficijencija / Zamor</option>
+                    <option value="Pacijent navodi povremene palpitacije (osećaj preskakanja srca), vrtoglavice i nesvesticu u poslednjih nekoliko dana.">Palpitacije i aritmija</option>
+                    <option value="Glavobolja u potiljačnom predelu, zujanje u ušima, zamućenje vida i povremeni skokovi arterijskog pritiska.">Hipertenzivni sindrom</option>
+                </select>
+                <label>Tekstualni unos glavnih tegoba:</label>
+                <textarea id="m1ChiefComplaints" oninput="updatePreview()">Pacijent dolazi na pregled žaleći se na umeren, povremeni bol iza grudne kosti koji se javlja pri naporu, praćen blagim nedostatkom vazduha.</textarea>
+
+                <label>Lična i porodična anamneza:</label>
+                <select id="m1HistorySel" onchange="applyPreset('m1HistorySel', 'm1AnamnesisHistory')">
+                    <option value="">-- Izaberi anamnestički profil --</option>
+                    <option value="U ličnoj istoriji dugogodišnji arterijski hipertoničar (HTA). Hereditet pozitivan: otac preležao infarkt miokarda u 52. godini.">Hipertenzija + Hereditet</option>
+                    <option value="Pacijent boluje od Diabetes Mellitus tip 2 na oralnoj terapiji. Negira ranije hirurške intervencije i alergije na lekove.">Dijabetes tip 2</option>
+                    <option value="Hronični pušač (preko 20 godina, kutija dnevno). Prethodno lečen zbog hiperlipidemije.">Faktori rizika (Pušač/Lipidi)</option>
+                </select>
+                <textarea id="m1AnamnesisHistory" oninput="updatePreview()">Pacijent navodi da je dugogodišnji hipertoničar, neredovno uzima propisanu terapiju. U porodičnoj istoriji ima kardiovaskularnih oboljenja.</textarea>
+            </div>
+        </div>
+
+        <!-- SEKCIJA 2: OBJEKTIVAN NALAZ, STATUS I DIJAGNOZA -->
+        <div id="tab-m2" class="section-content">
+            <div class="input-group" style="border-left-color: var(--med-success);">
+                <h4>Objektivan nalaz (Status Praesens)</h4>
+                <div class="grid-2">
+                    <div>
+                        <label>Krvni pritisak (TA mmHg):</label>
+                        <input type="text" id="m2Ta" value="145/90 mmHg" oninput="updatePreview()">
+                    </div>
+                    <div>
+                        <label>Frekvencija srca (SF /min):</label>
+                        <input type="text" id="m2Sf" value="82 /min" oninput="updatePreview()">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label>Saturacija (SpO2 %):</label>
+                        <input type="text" id="m2Spo2" value="97%" oninput="updatePreview()">
+                    </div>
+                    <div>
+                        <label>Telesna temperatura (°C):</label>
+                        <input type="text" id="m2Temp" value="36.6 °C" oninput="updatePreview()">
+                    </div>
+                </div>
+
+                <label>Opšti objektivan status po sistemima:</label>
+                <select id="m2StatusSel" onchange="applyPreset('m2StatusSel', 'm2ObjectiveStatus')">
+                    <option value="">-- Izaberi opšti status --</option>
+                    <option value="Pacijent svestan, orijentisan u vremenu i prostoru, komunikativan. Eupnoičan u miru. Koža i vidljive sluzokože normalno prebojene. Periferni edemi odsutni.">Status normalis / Komunikativan</option>
+                    <option value="Pacijent svestan, dispnoičan pri manjem naporu. Koža bleda, hladna na periferiji. Prisutni diskretni pretibijalni edemi na obema nogama.">Insuficijentan status / Edemi</option>
+                    <option value="Pacijent uznemiren, hipertoničan, crvenilo lica. Akcija srca ritmična, tonovi jasni, šumovi se ne čuju. Nad plućima vezikularno disanje čisto.">Hipertenzivni status / Uznemiren</option>
+                </select>
+                <textarea id="m2ObjectiveStatus" oninput="updatePreview()">Pacijent svestan, orijentisan, acijanotičan, eupnoičan u miru. Cor: akcija ritmična, tonovi jasni, bez jasnih šumova. Pulmo: vezikularno disanje, bez propratnog nalaza.</textarea>
+            </div>
+
+            <div class="input-group" style="border-left-color: var(--med-success);">
+                <h4>Uputna i Konačna Dijagnoza (MKB-10)</h4>
+                <label>Izbor dijagnoze (MKB-10 Kod):</label>
+                <select id="m2DgnSel" onchange="applyDiagnosisPreset()">
+                    <option value="" data-name="">-- Izaberi dijagnozu iz klasifikacije --</option>
+                    <option value="I10" data-name="Hypertensio arterialis essentialis (primarna)">I10 - Arterijska hipertenzija</option>
+                    <option value="I20" data-name="Angina pectoris">I20 - Angina pektoris</option>
+                    <option value="I25" data-name="Morbus ischaemicus cordis chronicus">I25 - Hronična ishemijska bolest srca</option>
+                    <option value="I48" data-name="Fibrillatio et flutter atriorum">I48 - Atrijalna fibrilacija (Aritmija)</option>
+                    <option value="E11" data-name="Diabetes mellitus non-insulino-dependens">E11 - Dijabetes melitus tip 2</option>
+                </select>
+                <div class="grid-2">
+                    <div>
+                        <label>MKB-10 Kod:</label>
+                        <input type="text" id="m2DgnCode" value="I10" oninput="updatePreview()">
+                    </div>
+                    <div>
+                        <label>Latinski / Stručni naziv:</label>
+                        <input type="text" id="m2DgnName" value="Hypertensio arterialis essentialis" oninput="updatePreview()">
+                    </div>
+                </div>
+
+                <label>Predložena terapija i ordinirani lekovi:</label>
+                <textarea id="m2Therapy" style="height:100px;" oninput="updatePreview()">1. Tab. Ampril 5mg, 1x1 ujutru&#10;2. Tab. Bisoprolol 2.5mg, 1x1 ujutru&#10;3. Tab. Aspirin Protect 100mg, 1x1 nakon ručka&#10;4. Dijetetski režim sa smanjenim unosom natrijuma (soli) i masti.</textarea>
+            </div>
+        </div>
+
+        <!-- SEKCIJA 3: ZAKAZIVANJE I KONTROLA -->
+        <div id="tab-m3" class="section-content">
+            <div class="input-group" style="border-left-color: #f59e0b;">
+                <h4>Plan kontrole i Zakazivanje sledećeg termina</h4>
+                <label>Preporuka i savet lekara:</label>
+                <textarea id="m3Advice" oninput="updatePreview()">Obavezno svakodnevno samokontrolisanje arterijskog pritiska i vođenje dnevnika. U slučaju pojave intenzivnijeg retrosternalnog bola koji ne prolazi na podjezičnu primenu nitroglicerina, javiti se odmah u najbližu hitnu službu.</textarea>
+                
+                <label>Potrebne dopunske dijagnostičke procedure:</label>
+                <textarea id="m3Diagnostics" oninput="updatePreview()">Uraditi kompletnu laboratorijsku analizu krvi (lipidni status, glukozu, urea, kreatinin, kalijum, natrijum), Ergometriju (test opterećenja) i Ehokardiografiju (Ultrazvuk srca).</textarea>
+
+                <div class="grid-2">
+                    <div>
+                        <label>Zakazana kontrola (Kada):</label>
+                        <select id="m3ControlPeriod" onchange="updateControlDate()">
+                            <option value="Za 1 mesec">Za 1 mesec</option>
+                            <option value="Za 3 meseca" selected>Za 3 meseca</option>
+                            <option value="Za 6 meseci">Za 6 meseci</option>
+                            <option value="Po potrebi / Indikovano">Po potrebi</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Tačan datum i vreme kontrole:</label>
+                        <input type="text" id="m3ExactTime" value="30. Avgust 2026. u 09:30h" oninput="updatePreview()">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- UPRAVLJANJE EVIDENCIJOM PACIJENATA -->
+        <div class="btn-holder">
+            <button class="action btn-save" onclick="savePatientReport()">💾 Sačuj u Kartoteku</button>
+            <button class="action btn-print" onclick="window.print()">🖨️ Štampaj Izveštaj</button>
+        </div>
+
+        <div style="margin-top: 10px;">
+            <h4 style="margin: 0 0 5px 0; font-size: 11px; text-transform: uppercase; color: var(--med-muted);">🗄️ Aktivna Kartoteka (Lokalna Baza):</h4>
+            <div class="archive-list" id="medArchiveContainer"></div>
+        </div>
+    </div>
+
+    <!-- DESNA STRANA: PURE TEXTUAL CLINICAL REPORT (SREĐENO ZA ŠTAMPU, BEZ TABELA) -->
+    <div class="preview-paper" id="paper">
+        
+        <!-- Zaglavlje Zdravstvene Ustanove -->
+        <div class="clinic-header">
+            <div class="left-meta">
+                <div class="clinic-logo" id="prClinicName">UNIVERZITETSKI KLINIČKI CENTAR</div>
+                <div id="prDepartment" style="font-weight: 600; color:#475569;">Služba za kardiologiju i internu medicinu</div>
+            </div>
+            <div class="clinic-meta">
+                <div id="prDoctorName" style="font-weight: 700; font-size:13px;">Dr Ognjen Filipović</div>
+                <div>Lekar specijalista interne medicine</div>
+                <div>Datum: <strong id="prCurrentDate">2026-06-06</strong></div>
+            </div>
+        </div>
+
+        <!-- Naslov dokumenta -->
+        <div class="report-title">
+            <h1>IZVEŠTAJ LEKARA SPECIJALISTE</h1>
+            <p>Medicinska dokumentacija / Protokol pacijenta</p>
+        </div>
+
+        <!-- Blok sa podacima o pacijentu -->
+        <div class="patient-info-block">
+            <div>
+                <strong>Pacijent:</strong> <span id="prPatName">...</span><br>
+                <strong>Datum rođenja:</strong> <span id="prPatDob">...</span>
+            </div>
+            <div>
+                <strong>LBO / JMBG:</strong> <span id="prPatLbo">...</span><br>
+                <strong>Pol:</strong> <span id="prPatGender">...</span>
+            </div>
+        </div>
+
+        <!-- Vitalni parametri (Status) -->
+        <div class="status-metrics">
+            <div>TA: <span id="prTa">...</span></div>
+            <div>SF: <span id="prSf">...</span></div>
+            <div>SpO2: <span id="prSpo2">...</span></div>
+            <div>T: <span id="prTemp">...</span></div>
+        </div>
+
+        <!-- Anamneza -->
+        <div class="clinical-section">
+            <h3>1. Anamnesis (Anamneza i glavne tegobe)</h3>
+            <p id="prComplaints">...</p>
+            <p id="prHistory" style="margin-top: 5px; font-style: italic; color: #334155;"></p>
+        </div>
+
+        <!-- Objektivan Status -->
+        <div class="clinical-section">
+            <h3>2. Status Praesens (Objektivan nalaz po sistemima)</h3>
+            <p id="prObjective">...</p>
+        </div>
+
+        <!-- Dijagnoza -->
+        <div class="clinical-section">
+            <h3>3. Diagnosis (MKB-10 Klasifikacija)</h3>
+            <p style="font-size: 15px; font-weight: 700; margin: 5px 0;">
+                <span id="prDgnCode" style="background: #000; color: #fff; padding: 2px 6px; border-radius: 3px;">I10</span> 
+                &mdash; <span id="prDgnName">Hypertensio arterialis essentialis</span>
+            </p>
+        </div>
+
+        <!-- Terapija -->
+        <div class="clinical-section">
+            <h3>4. Therapia et Decursus (Predložena terapija i preporuka)</h3>
+            <p id="prTherapy" style="font-family: 'Courier New', Courier, monospace; font-weight: 600; background: #fafafa; padding: 10px; border-left: 2px solid #000;"></p>
+        </div>
+
+        <!-- Plan Dijagnostike i Zakazivanje kontrole -->
+        <div class="clinical-section" style="background: #f8fafc; padding: 10px; border-radius: 4px;">
+            <h3>5. Plan kontrole i dopunska dijagnostika</h3>
+            <p><strong>Dopunski uputi:</strong> <span id="prDiagnostics">...</span></p>
+            <p style="margin-top: 5px;"><strong>Naredni zakazani termin:</strong> <span id="prControlDate" style="font-weight: 700; text-decoration: underline;">...</span></p>
+        </div>
+
+        <!-- Pravna klauzula validnosti medicinskog izveštaja -->
+        <div class="clinic-footer">
+            Nalaz je izdat u svrhu daljeg lečenja i medicinske evidencije pacijenta. Podaci izneti u ovom dokumentu su strogo povredljive prirode i podležu Zakonu o pravima pacijenata i zaštiti podataka o ličnosti Republike Srbije. Nalaz je važeći bez pečata ukoliko je generisan kroz zvanični elektronski zdravstveni informacioni sistem klinike.
+        </div>
+
+        <!-- Potpisi -->
+        <div class="signatures-block">
+            <div class="sig-line">
+                Pacijent / Staratelj
+            </div>
+            <div class="sig-line">
+                <span id="prDocSign">Dr Ognjen Filipović</span><br>
+                <span style="font-size: 10px; font-weight: normal; color: #475569;">Faksimil i potpis lekara</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIKA SISTEMA I UPRAVLJANJE LOKALNOM BAZOM -->
+    <script>
+        let currentTab = 'm1';
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btn-' + tabId).classList.add('active');
+            document.querySelectorAll('.section-content').forEach(content => content.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            
+            updatePreview();
+        }
+
+        // Pomoćna funkcija za prepisivanje iz padajućeg menija u tekstualno polje
+        function applyPreset(selectId, textareaId) {
+            const sel = document.getElementById(selectId);
+            if (sel.value !== "") {
+                document.getElementById(textareaId).value = sel.value;
+                updatePreview();
+            }
+        }
+
+        // Specijalna funkcija za dijagnoze
+        function applyDiagnosisPreset() {
+            const sel = document.getElementById('m2DgnSel');
+            const selectedOption = sel.options[sel.selectedIndex];
+            if (sel.value !== "") {
+                document.getElementById('m2DgnCode').value = sel.value;
+                document.getElementById('m2DgnName').value = selectedOption.getAttribute('data-name');
+                updatePreview();
+            }
+        }
+
+        // Automatsko računanje datuma kontrole (orijentaciono)
+        function updateControlDate() {
+            const period = document.getElementById('m3ControlPeriod').value;
+            const today = new Date();
+            let exactText = "";
+            
+            if (period === "Za 1 mesec") {
+                today.setMonth(today.getMonth() + 1);
+                exactText = today.toLocaleDateString('sr-RS') + ". u 09:00h";
+            } else if (period === "Za 3 meseca") {
+                today.setMonth(today.getMonth() + 3);
+                exactText = today.toLocaleDateString('sr-RS') + ". u 09:30h";
+            } else if (period === "Za 6 meseci") {
+                today.setMonth(today.getMonth() + 6);
+                exactText = today.toLocaleDateString('sr-RS') + ". u 10:00h";
+            } else {
+                exactText = "Po potrebi, indikovano stanjem pacijenta.";
+            }
+            
+            document.getElementById('m3ExactTime').value = exactText;
+            updatePreview();
+        }
+
+        // Glavno renderovanje izveštaja na desnoj strani
+        function updatePreview() {
+            // Fiksni parametri klinike
+            document.getElementById('prClinicName').innerText = document.getElementById('cfgClinicName').value;
+            document.getElementById('prDepartment').innerText = document.getElementById('cfgDepartment').value;
+            document.getElementById('prDoctorName').innerText = document.getElementById('cfgDoctor').value;
+            document.getElementById('prDocSign').innerText = document.getElementById('cfgDoctor').value;
+
+            // Sekcija 1: Pacijent i Anamneza
+            document.getElementById('prPatName').innerText = document.getElementById('m1Name').value;
+            
+            // Formatiranje datuma rođenja
+            const dobValue = document.getElementById('m1Dob').value;
+            document.getElementById('prPatDob').innerText = dobValue ? new Date(dobValue).toLocaleDateString('sr-RS') : "...";
+            
+            document.getElementById('prPatLbo').innerText = document.getElementById('m1Lbo').value;
+            document.getElementById('prPatGender').innerText = document.getElementById('m1Gender').value;
+            document.getElementById('prComplaints').innerText = document.getElementById('m1ChiefComplaints').value;
+            document.getElementById('prHistory').innerText = "Anamnestička istorija: " + document.getElementById('m1AnamnesisHistory').value;
+
+            // Sekcija 2: Status i Vitalni parametri
+            document.getElementById('prTa').innerText = document.getElementById('m2Ta').value;
+            document.getElementById('prSf').innerText = document.getElementById('m2Sf').value;
+            document.getElementById('prSpo2').innerText = document.getElementById('m2Spo2').value;
+            document.getElementById('prTemp').innerText = document.getElementById('m2Temp').value;
+            document.getElementById('prObjective').innerText = document.getElementById('m2ObjectiveStatus').value;
+            
+            // MKB Dijagnoza
+            document.getElementById('prDgnCode').innerText = document.getElementById('m2DgnCode').value;
+            document.getElementById('prDgnName').innerText = document.getElementById('m2DgnName').value;
+            document.getElementById('prTherapy').innerText = document.getElementById('m2Therapy').value;
+
+            // Sekcija 3: Kontrole
+            document.getElementById('prDiagnostics').innerText = document.getElementById('m3Diagnostics').value;
+            document.getElementById('prControlDate').innerText = document.getElementById('m3ExactTime').value;
+            
+            // Postavljanje trenutnog današnjeg datuma izdavanja
+            const danas = new Date();
+            document.getElementById('prCurrentDate').innerText = danas.toLocaleDateString('sr-RS');
+        }
+
+        // --- TRAJNA KARTOTEKA PACIJENATA (LOCALSTORAGE) ---
+        function savePatientReport() {
+            const lbo = document.getElementById('m1Lbo').value;
+            const pacName = document.getElementById('m1Name').value;
+            
+            if (!lbo || !pacName) {
+                alert("Morate uneti ime pacijenta i JMBG/LBO kao jedinstveni identifikator kartona!");
+                return;
+            }
+
+            let medDatabase = JSON.parse(localStorage.getItem('klinikaOS_DB_v1')) || {};
+            
+            // Pakovanje svih unetih polja u objekat kartona
+            medDatabase[lbo] = {
+                name: pacName,
+                dob: document.getElementById('m1Dob').value,
+                lbo: lbo,
+                gender: document.getElementById('m1Gender').value,
+                complaints: document.getElementById('m1ChiefComplaints').value,
+                history: document.getElementById('m1AnamnesisHistory').value,
+                ta: document.getElementById('m2Ta').value,
+                sf: document.getElementById('m2Sf').value,
+                spo2: document.getElementById('m2Spo2').value,
+                temp: document.getElementById('m2Temp').value,
+                objStatus: document.getElementById('m2ObjectiveStatus').value,
+                dgnCode: document.getElementById('m2DgnCode').value,
+                dgnName: document.getElementById('m2DgnName').value,
+                therapy: document.getElementById('m2Therapy').value,
+                diagnostics: document.getElementById('m3Diagnostics').value,
+                controlTime: document.getElementById('m3ExactTime').value
+            };
+
+            localStorage.setItem('klinikaOS_DB_v1', JSON.stringify(medDatabase));
+            alert('Izveštaj i karton pacijenta uspešno arhivirani u elektronsku kartoteku!');
+            loadMedArchiveList();
+        }
+
+        function loadMedArchiveList() {
+            const container = document.getElementById('medArchiveContainer');
+            container.innerHTML = '';
+            
+            let medDatabase = JSON.parse(localStorage.getItem('klinikaOS_DB_v1')) || {};
+
+            if (Object.keys(medDatabase).length === 0) {
+                container.innerHTML = '<span style="color:var(--med-muted); font-size:12px;">Kartoteka je trenutno prazna.</span>';
+                return;
+            }
+
+            for (let lbo in medDatabase) {
+                let patient = medDatabase[lbo];
+                let div = document.createElement('div');
+                div.className = 'archive-item';
+                div.innerHTML = `<span onclick="loadPatientCard('${lbo}')">📁 ${patient.name} (${patient.dgnCode})</span>
+                                 <button class="btn-del" onclick="deletePatientCard('${lbo}')">Ukloni</button>`;
+                container.appendChild(div);
+            }
+        }
+
+        function loadPatientCard(lbo) {
+            let medDatabase = JSON.parse(localStorage.getItem('klinikaOS_DB_v1')) || {};
+            let patient = medDatabase[lbo];
+            if (!patient) return;
+
+            // Vraćanje podataka nazad u formu za modifikaciju ili pregled
+            document.getElementById('m1Name').value = patient.name;
+            document.getElementById('m1Dob').value = patient.dob;
+            document.getElementById('m1Lbo').value = patient.lbo;
+            document.getElementById('m1Gender').value = patient.gender;
+            document.getElementById('m1ChiefComplaints').value = patient.complaints;
+            document.getElementById('m1AnamnesisHistory').value = patient.history;
+            document.getElementById('m2Ta').value = patient.ta;
+            document.getElementById('m2Sf').value = patient.sf;
+            document.getElementById('m2Spo2').value = patient.spo2;
+            document.getElementById('m2Temp').value = patient.temp;
+            document.getElementById('m2ObjectiveStatus').value = patient.objStatus;
+            document.getElementById('m2DgnCode').value = patient.dgnCode;
+            document.getElementById('m2DgnName').value = patient.dgnName;
+            document.getElementById('m2Therapy').value = patient.therapy;
+            document.getElementById('m3Diagnostics').value = patient.diagnostics;
+            document.getElementById('m3ExactTime').value = patient.controlTime;
+
+            updatePreview();
+            alert('Zdravstveni karton pacijenta uspešno podignut iz arhive!');
+        }
+
+        function deletePatientCard(lbo) {
+            event.stopPropagation();
+            if (confirm('Da li ste sigurni da želite trajno da uklonite karton pacijenta sa LBO brojem: ' + lbo + '?')) {
+                let medDatabase = JSON.parse(localStorage.getItem('klinikaOS_DB_v1')) || {};
+                delete medDatabase[lbo];
+                localStorage.setItem('klinikaOS_DB_v1', JSON.stringify(medDatabase));
+                loadMedArchiveList();
+            }
+        }
+
+        window.onload = function() {
+            updatePreview();
+            loadMedArchiveList();
+        };
+    </script>
+</body>
+</html>
