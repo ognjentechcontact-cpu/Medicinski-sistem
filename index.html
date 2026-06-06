@@ -76,23 +76,21 @@
         .wizard-step-content { display: none; }
         .wizard-step-content.active { display: block; }
 
-        /* --- PROFESIONALNI STILOVI ZA ŠTAMPU (A4 BELI PAPIR) --- */
-        .print-document { display: none; font-family: 'Times New Roman', Times, serif; color: #000; background: #fff; padding: 60px; line-height: 1.4; }
-        .print-header-system { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 30px; font-size: 13px; }
-        .doc-title { text-align: center; margin: 40px 0; }
-        .doc-title h1 { font-size: 26px; text-transform: uppercase; font-weight: bold; margin: 0; }
-        .print-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .print-section { margin-bottom: 25px; }
+        /* --- STILOVI ZA STRUČNU ŠTAMPU --- */
+        .print-document { display: none; font-family: 'Times New Roman', Times, serif; color: #000; background: #fff; padding: 40px; line-height: 1.4; }
+        .print-header-system { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 25px; font-size: 13px; }
+        .doc-title { text-align: center; margin: 30px 0; }
+        .doc-title h1 { font-size: 24px; text-transform: uppercase; font-weight: bold; margin: 0; }
+        .print-section { margin-bottom: 20px; }
         .print-section h3 { font-size: 15px; border-bottom: 1px solid #000; margin-bottom: 8px; padding-bottom: 2px; text-transform: uppercase; font-weight: bold; }
         .print-section p { font-size: 14px; margin: 6px 0; text-align: justify; }
-        
-        .med-data-box { background: #f8fafc; border: 1px solid #000; padding: 15px; font-size: 14px; margin-bottom: 25px; }
-        
+        .med-data-box { background: #f8fafc; border: 1px solid #000; padding: 12px; font-size: 14px; margin-bottom: 20px; }
+
+        /* KRUCIJALNI @MEDIA PRINT FILTER: Sakriva apsolutno sve osim dokumenta koji ima klasu 'print-active' */
         @media print {
             body * { display: none !important; }
-            .print-document, .print-document * { display: block !important; }
-            .print-grid { display: grid !important; }
-            .print-header-system { display: flex !important; }
+            .print-active, .print-active * { display: block !important; }
+            .print-active .print-header-system { display: flex !important; }
         }
     </style>
 </head>
@@ -124,7 +122,7 @@
 </div>
 
 <!-- ================= INTERFEJS APLIKACIJE ================= -->
-<div class="app-container no-print" id="main-app-interface">
+<div class="app-container" id="main-app-interface">
     <header>
         <h1>🩺 KlinikaOS <span style="font-size: 14px; color: var(--text-muted); font-weight: normal;">| Medicinski Informacioni Sistem</span></h1>
         <div style="display: flex; gap: 10px; align-items:center;">
@@ -207,7 +205,7 @@
         </div>
     </div>
 
-    <!-- 3. ZAKAZIVANJE TERMINA (Pristup: Sestre i Lekari) -->
+    <!-- 3. ZAKAZIVANJE TERMINA -->
     <div id="schedule-view" class="view-section">
         <h2>📅 Zakazivanje Pregleda</h2>
         <p>Pacijent: <strong id="sched-name" style="color:var(--accent-blue);"></strong></p>
@@ -226,7 +224,7 @@
         <button class="btn btn-amber" onclick="saveAppointment()">Potvrdi i odštampaj uputnicu/potvrdu</button>
     </div>
 
-    <!-- 4. LEKARSKI IZVEŠTAJ (Pristup: Samo Lekari) -->
+    <!-- 4. LEKARSKI IZVEŠTAJ -->
     <div id="write-report-view" class="view-section">
         <h2>📋 Novi Specijalistički Izveštaj: <span id="report-target-name" style="color:var(--accent-blue);"></span></h2>
         
@@ -256,30 +254,25 @@
 
         <div id="w-step3" class="wizard-step-content">
             <div class="form-group">
-                <label>MKB-10 Dijagnoza (Kompletna lista):</label>
+                <label>MKB-10 Dijagnoza:</label>
                 <select id="wSelDgn" onchange="let opt=this.options[this.selectedIndex]; document.getElementById('wDgnKod').value=this.value; document.getElementById('wDgnNaziv').value=opt.getAttribute('data-lat');">
                     <option value="">-- Izaberite zvaničnu šifru bolesti --</option>
-                    <!-- KARDIOLOGIJA -->
                     <option value="I10" data-lat="Hypertensio arterialis essentialis">I10 - Esencijalna (primarna) hipertenzija</option>
                     <option value="I20" data-lat="Angina pectoris">I20 - Angina pektoris (Bol u grudima)</option>
                     <option value="I21" data-lat="Infarctus myocardii acutus">I21 - Akutni infarkt miokarda</option>
                     <option value="I48" data-lat="Fibrillatio et flutter atriorum">I48 - Treperenje i lepršanje pretkomora (Aritmija)</option>
                     <option value="I50" data-lat="Insufficientia cordis">I50 - Insuficijencija srca (Srčana slabost)</option>
-                    <!-- PULMOLOGIJA -->
                     <option value="J44" data-lat="Morbus pulmonalis obstructivus chronicus alius">J44 - Druga hronična opstruktivna bolest pluća (HOBP)</option>
                     <option value="J45" data-lat="Asthma">J45 - Astma</option>
                     <option value="J18" data-lat="Pneumonia, organismus non specificatus">J18 - Zapaljenje pluća (Pneumonija)</option>
-                    <!-- ENDOKRINOLOGIJA -->
                     <option value="E11" data-lat="Diabetes mellitus non-insulino-dependens">E11 - Dijabetes melitus tip 2</option>
                     <option value="E03" data-lat="Hypothyreoidismus alius">E03 - Druga hipotireoza (Smanjen rad štitne žlezde)</option>
-                    <!-- NEUROLOGIJA / PSIHIJATRIJA -->
                     <option value="G43" data-lat="Migraine">G43 - Migrena</option>
                     <option value="F41" data-lat="Neuroses anxiosae aliae">F41 - Drugi anksiozni poremećaji</option>
                     <option value="F32" data-lat="Episodus depressivus">F32 - Depresivna epizoda</option>
-                    <!-- OPŠTE / GASTRO -->
                     <option value="K21" data-lat="Morbus refluxus gastroesophagealis">K21 - Gastroezofagealna refluksna bolest (GERB)</option>
-                    <option value="M54" data-lat="Dorsalgia">M54 - Bol u leđima (Dorzalgija / Lumbalni sindrom)</option>
-                    <option value="N39" data-lat="Morbi systematis urinarii alii">N39 - Druga oboljenja urinarnog sistema (Infekcija)</option>
+                    <option value="M54" data-lat="Dorsalgia">M54 - Bol u leđima (Lumbalni sindrom)</option>
+                    <option value="N39" data-lat="Morbi systematis urinarii alii">N39 - Druga oboljenja urinarnog sistema</option>
                 </select>
             </div>
             <div class="grid-2">
@@ -294,7 +287,7 @@
         </div>
     </div>
 
-    <!-- 5. KREIRANJE UPUTA (Pristup: Samo Lekari) -->
+    <!-- 5. KREIRANJE UPUTA -->
     <div id="write-referral-view" class="view-section">
         <h2>🏥 Izdavanje Uputa lekarske specijalistike</h2>
         <p>Pacijent: <strong id="ref-patient-name"></strong></p>
@@ -304,7 +297,7 @@
         </div>
         <div class="form-group">
             <label>Razlog upućivanja i tražene analize:</label>
-            <textarea id="ref-reason" style="height:100px;">Molim kompletnu krvnu sliku (KKS), CRP, Glikemiju, Lipidni status (Holesterol, Trigliceridi), Urea, Kreatinin.</textarea>
+            <textarea id="ref-reason" style="height:100px;">Molim kompletnu krvnu sliku (KKS), CRP, Glikemiju, Lipidni status (Holesterol, Trigliceridi).</textarea>
         </div>
         <button class="btn btn-blue" onclick="printReferral()">🖨️ Odštampaj Uput</button>
     </div>
@@ -313,13 +306,13 @@
 
 <!-- ================= DOKUMENTI ZA ŠTAMPU (A4 ČIST PAPIR) ================= -->
 
-<!-- 1. KORICA KARTONA (Samo opšti podaci, bez ikakvih izveštaja) -->
+<!-- 1. KORICA KARTONA (Bez izveštaja) -->
 <div id="print-cover" class="print-document">
     <div class="print-header-system">
         <div><strong>REPUBLIKA SRBIJA</strong><br>Zdravstveni Karton Ustanove</div>
         <div style="text-align: right;">Evidencioni LBO broj:<br><strong id="pr-c-lbo-top"></strong></div>
     </div>
-    <div class="doc-title" style="margin-top:80px; margin-bottom:80px;">
+    <div class="doc-title" style="margin-top:50px; margin-bottom:50px;">
         <h1 style="font-size:30px;">ZDRAVSTVENI KARTON</h1>
         <p style="font-size:14px; margin-top:10px;">Matična evidencija i socijalno-medicinski status pacijenta</p>
     </div>
@@ -340,7 +333,7 @@
         <p><strong>Krvna Grupa i Rh Faktor:</strong> <span id="pr-c-blood" style="font-weight:bold;">-</span></p>
         <p><strong>Alergijske Manifestacije:</strong> <span id="pr-c-allergies" style="font-weight:bold; color:red;">-</span></p>
     </div>
-    <div style="margin-top:200px; display:flex; justify-content:between;">
+    <div style="margin-top:150px; display:flex; justify-content:space-between;">
         <div style="border-top:1px solid #000; width:200px; text-align:center; font-size:12px; padding-top:5px;">Mesto i datum otvaranja</div>
         <div style="border-top:1px solid #000; width:200px; text-align:center; font-size:12px; padding-top:5px;">M.P. Ovlašćeno lice</div>
     </div>
@@ -385,7 +378,7 @@
         <p style="white-space:pre-line; font-family:monospace; background:#f8fafc; padding:10px; border:1px dashed #000;" id="pr-r-terapija"></p>
         <p style="margin-top:10px;"><strong>Naredna kontrola:</strong> <span id="pr-r-kontrola"></span></p>
     </div>
-    <div style="margin-top:80px; text-align:right;">
+    <div style="margin-top:60px; text-align:right;">
         <div style="display:inline-block; border-top:1px solid #000; width:220px; text-align:center; font-size:12px; padding-top:5px;">
             Dr Ognjen Filipović<br>Faksimil i potpis lekara
         </div>
@@ -407,10 +400,10 @@
         <p><strong>Dodeljen Termin:</strong> <span id="pr-a-date" style="font-weight:bold; text-decoration:underline;"></span></p>
         <p><strong>Vrsta Ambulante/Pregleda:</strong> <span id="pr-a-reason"></span></p>
     </div>
-    <p style="font-size:12px; margin-top:20px; font-style:italic;">Molimo pacijenta da ponese ovu potvrdu i zdravstvenu knjižicu na zakazani pregled. U slučaju otkazivanja zvati kartoteku.</p>
+    <p style="font-size:12px; margin-top:20px; font-style:italic;">Molimo pacijenta da ponese ovu potvrdu i zdravstvenu knjižicu na zakazani pregled.</p>
 </div>
 
-<!-- 4. UPUT LEKARA (ZA DOKTORA) -->
+<!-- 4. UPUT LEKARA -->
 <div id="print-referral" class="print-document">
     <div class="print-header-system">
         <div><strong>REPUBLIKA SRBIJA</strong><br>KlinikaOS | Interni Uput</div>
@@ -425,7 +418,7 @@
     </div>
     <div class="print-section">
         <h3>Ustanova / Služba u koju se bolesnik upućuje:</h3>
-        <p style="font-size:16px; font-weight:bold; color:var(--accent-blue);" id="pr-ref-inst"></p>
+        <p style="font-size:16px; font-weight:bold;" id="pr-ref-inst"></p>
     </div>
     <div class="print-section">
         <h3>Uputna Dijagnoza / Indikacije i tražene pretrage:</h3>
@@ -440,7 +433,7 @@
 <script>
     let db = JSON.parse(localStorage.getItem('klinika_core_db')) || {};
     let activePatientLbo = null;
-    let currentRole = 'doktor'; // Podrazumevano
+    let currentRole = 'doktor';
 
     function setRole(role) {
         currentRole = role;
@@ -495,7 +488,6 @@
             if (search && !p.name.toLowerCase().includes(search) && !p.lbo.includes(search)) continue;
             count++;
 
-            // Dinamička provera prava: Ako je sestra, sakrij lekarske komande
             let doctorButtons = `
                 <button class="btn btn-sm btn-green" onclick="openReportWizard('${lbo}')">📝 Izveštaj</button>
                 <button class="btn btn-sm btn-blue" onclick="openReferralModal('${lbo}')">🏥 Uput</button>
@@ -543,7 +535,25 @@
         showSection('dashboard-view');
     }
 
-    // --- ŠTAMPA KORICE (ČISTO, BEZ IZVEŠTAJA) ---
+    // --- FUNKCIJA ZA SIGURNU POJEDINAČNU ŠTAMPU ---
+    function triggerSecurePrint(targetElementId) {
+        // 1. Prvo ukloni aktivnu klasu sa svih dokumenata za štampu
+        document.querySelectorAll('.print-document').forEach(doc => {
+            doc.classList.remove('print-active');
+        });
+
+        // 2. Dodaj klasu 'print-active' samo onom elementu koji stvarno želiš da štampaš
+        const targetDoc = document.getElementById(targetElementId);
+        targetDoc.classList.add('print-active');
+
+        // 3. Pokreni sistemski prozor za štampanje
+        window.print();
+
+        // 4. Nakon završetka, očisti klasu zbog sigurnosti interfejsa
+        targetDoc.classList.remove('print-active');
+    }
+
+    // --- ŠTAMPA SAMO KORICE ---
     function printPatientCover(lbo) {
         let p = db[lbo];
         document.getElementById('pr-c-lbo-top').innerText = p.lbo;
@@ -557,12 +567,10 @@
         document.getElementById('pr-c-blood').innerText = p.bloodType;
         document.getElementById('pr-c-allergies').innerText = p.allergies;
 
-        hideAllPrintSections();
-        document.getElementById('print-cover').style.display = 'block';
-        window.print();
+        triggerSecurePrint('print-cover');
     }
 
-    // --- WIZARD ZA IZVEŠTAJ (LEKAR) ---
+    // --- WIZARD I ŠTAMPA IZVEŠTAJA ---
     function openReportWizard(lbo) {
         activePatientLbo = lbo;
         document.getElementById('report-target-name').innerText = db[lbo].name;
@@ -596,13 +604,11 @@
         document.getElementById('pr-r-terapija').innerText = document.getElementById('wTerapija').value;
         document.getElementById('pr-r-kontrola').innerText = document.getElementById('wKontrola').value;
 
-        hideAllPrintSections();
-        document.getElementById('print-report').style.display = 'block';
-        window.print();
+        triggerSecurePrint('print-report');
         showSection('dashboard-view');
     }
 
-    // --- ZAKAZIVANJE I POTVRDA (SESTRE I LEKARI) ---
+    // --- POTVRDA O ZAKAZIVANJU ---
     function openScheduler(lbo) {
         activePatientLbo = lbo;
         document.getElementById('sched-name').innerText = db[lbo].name;
@@ -624,13 +630,11 @@
         let curApp = parseInt(document.getElementById('stat-appointments').innerText);
         document.getElementById('stat-appointments').innerText = curApp + 1;
 
-        hideAllPrintSections();
-        document.getElementById('print-appointment').style.display = 'block';
-        window.print();
+        triggerSecurePrint('print-appointment');
         showSection('dashboard-view');
     }
 
-    // --- UPUTI (LEKAR) ---
+    // --- ŠTAMPA UPUTA ---
     function openReferralModal(lbo) {
         activePatientLbo = lbo;
         document.getElementById('ref-patient-name').innerText = db[lbo].name;
@@ -643,9 +647,7 @@
         document.getElementById('pr-ref-inst').innerText = document.getElementById('ref-institution').value;
         document.getElementById('pr-ref-reason').innerText = document.getElementById('ref-reason').value;
 
-        hideAllPrintSections();
-        document.getElementById('print-referral').style.display = 'block';
-        window.print();
+        triggerSecurePrint('print-referral');
         showSection('dashboard-view');
     }
 
@@ -667,13 +669,6 @@
 
     function deletePatient(lbo) {
         if(confirm('Brisanje kartona?')) { delete db[lbo]; localStorage.setItem('klinika_core_db', JSON.stringify(db)); renderPatientTable(); }
-    }
-
-    function hideAllPrintSections() {
-        document.getElementById('print-cover').style.display = 'none';
-        document.getElementById('print-report').style.display = 'none';
-        document.getElementById('print-appointment').style.display = 'none';
-        document.getElementById('print-referral').style.display = 'none';
     }
 </script>
 </body>
